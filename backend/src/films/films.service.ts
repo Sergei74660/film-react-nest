@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { FilmsRepository } from 'src/repository/films.repository';
 import { FilmDto } from './dto/films.dto';
 
-// Бизнес-логика работы с фильмами: обращается к репозиторию, а не напрямую к mongoose
+// Бизнес-логика работы с фильмами: обращается к репозиторию, а не напрямую к БД
 @Injectable()
 export class FilmsService {
   constructor(private readonly filmsRepository: FilmsRepository) {}

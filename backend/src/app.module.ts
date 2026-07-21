@@ -28,6 +28,10 @@ import { OrderModule } from './order/order.module';
           password: configService.get<string>('DATABASE_PASSWORD'),
           autoLoadEntities: true,
           synchronize: false,
+          extra: {
+            charset: 'utf8',
+            client_encoding: 'UTF8',
+          },
         };
       },
     }),
