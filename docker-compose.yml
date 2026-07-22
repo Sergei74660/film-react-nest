@@ -1,0 +1,81 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_container
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - '5432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - film-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_container
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - '8080:80'
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - db
+    networks:
+      - film-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    image: ghcr.io/sergei74660/film-backend:latest
+    container_name: film_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - film-network
+
+  # Только собирает фронтенд и складывает dist в общий volume — сам ничего
+  # не раздаёт, статику отдаёт сервис nginx (см. nginx/nginx.conf)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    image: ghcr.io/sergei74660/film-frontend:latest
+    container_name: film_frontend
+    restart: 'no'
+    volumes:
+      - frontend-dist:/usr/share/nginx/html
+    networks:
+      - film-network
+
+  nginx:
+    build:
+      context: ./nginx
+    image: ghcr.io/sergei74660/film-nginx:latest
+    container_name: film_nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    volumes:
+      - frontend-dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - film-network
+
+networks:
+  film-network:
+    driver: bridge
+
+volumes:
+  db-data:
+  pgadmin-data:
+  frontend-dist:
